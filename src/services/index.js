@@ -1,5 +1,8 @@
 import os from 'os';
+import path from 'path';
+import { dirname } from 'path';
 import pptxgen from 'pptxgenjs';
+import { fileURLToPath } from 'url';
 import {colors} from '../styles/index.js'
 import {getLiturgy} from '../api/index.js';
 
@@ -46,8 +49,10 @@ const generateSlideByTopic = (pptx, remainingText) => {
     let text = addLineBreak(remainingText.texto, 600).split(os.EOL)
     for(let i = 0; i < text.length; i++) {
         const slide = pptx.addSlide({ masterName: "WIDE" });
-
-        slide.background = {path: "src/images/background.png"}
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = dirname(__filename);
+        const imagePath = path.join(__dirname, '../', 'images', 'background.png');
+        slide.background = {path: imagePath}
         
         slide.addText(addLineBreak(remainingText.titulo, 27), { x: 1, y: 0.5, w: '100%', h: 0.5, fontSize: 24, color: colors.title, align: 'center', bold: true });
         slide.addText(text[i], { x: 1, y: .5, w: '90%', h: '100%', fontSize: 20, color: colors.text, outline:{ size:.7, color: colors.border}, bold: true});
