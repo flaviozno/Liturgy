@@ -1,8 +1,10 @@
 import 'dotenv/config'
 
-export const getLiturgy = async () => {
+export const getLiturgy = async (day, mounth) => {
     try {
-        const response = await fetch(process.env.URL_LITURGIA)
+        let response = null
+        if(day && mounth) response = await fetch(`${process.env.URL_LITURGIA}/?dia=${day}&mes=${mounth}`)
+        else response = await fetch(process.env.URL_LITURGIA)
         if (!response.ok) {
             throw new Error(`Failed to fetch data. Status: ${response.status}`);
         }

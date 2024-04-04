@@ -6,15 +6,15 @@ import { fileURLToPath } from 'url';
 import {colors} from '../styles/index.js'
 import {getLiturgy} from '../api/index.js';
 
-export const generateSlides = async () => {
+export const generateSlides = async (day, mounth) => {
     try {
         const pptx = new pptxgen();
 
-        const liturgy = await getLiturgy()
+        const liturgy = await getLiturgy(day, mounth)
 
         if(!liturgy) return null;
 
-        const { liturgia, data, cor, primeiraLeitura, segundaLeitura, evangelho } = liturgy;
+        const { liturgia, data, cor, primeiraLeitura, salmo, segundaLeitura, evangelho } = liturgy;
         
         if(liturgia)
             generateOpening(pptx.addSlide(), liturgia, cor, data)
@@ -22,6 +22,8 @@ export const generateSlides = async () => {
             generateSlideByTopic(pptx, primeiraLeitura)
         if(segundaLeitura && segundaLeitura !== "Não há segunda leitura hoje!")
             generateSlideByTopic(pptx, segundaLeitura)
+        if(salmo)
+            generateSalmo(pptx, salmo)
         if(evangelho)
             generateSlideByTopic(pptx, evangelho)
 
@@ -29,6 +31,12 @@ export const generateSlides = async () => {
     } catch (error) {
         console.log(error)
     }
+}
+
+const imagePath = () => {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    return path.join(__dirname, '../', 'images', 'background.png');
 }
 
 const addLineBreak = (text, breakIndexNumber) => {
@@ -45,14 +53,20 @@ const generateOpening = (pptx, text, cor, data) => {
     pptx.addText(data + ' - Cor: ' + cor, { fontSize: 18, align: "center", w: '100%', h: '100%', color: colors.title, italic: true});
 } 
 
+const generateSalmo = (pptx, salmo) => {
+    const slide = pptx.addSlide({ masterName: "WIDE" });
+    slide.background = {path: imagePath()}
+
+    slide.addText(addLineBreak(salmo.refrao.trim(), 27), { x: 1, y: 0.5, w: '100%', h: 0.5, fontSize: 24, color: colors.title, align: 'center', bold: true });
+    slide.addText(salmo.texto, { x: 1, y: .5, w: '90%', h: '100%', fontSize: 20, color: colors.text, outline:{ size:.7, color: colors.border}, bold: true});
+
+}
+
 const generateSlideByTopic = (pptx, remainingText) => {
     let text = addLineBreak(remainingText.texto, 600).split(os.EOL)
     for(let i = 0; i < text.length; i++) {
         const slide = pptx.addSlide({ masterName: "WIDE" });
-        const __filename = fileURLToPath(import.meta.url);
-        const __dirname = dirname(__filename);
-        const imagePath = path.join(__dirname, '../', 'images', 'background.png');
-        slide.background = {path: imagePath}
+        slide.background = {path: imagePath()}
         
         slide.addText(addLineBreak(remainingText.titulo, 27), { x: 1, y: 0.5, w: '100%', h: 0.5, fontSize: 24, color: colors.title, align: 'center', bold: true });
         slide.addText(text[i], { x: 1, y: .5, w: '90%', h: '100%', fontSize: 20, color: colors.text, outline:{ size:.7, color: colors.border}, bold: true});
